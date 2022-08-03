@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.18.1",
     "nedb": "^1.8.0",
+    "simplenoise": "^1.0.1",
     "socket.io": "^4.5.1"
   }
 }

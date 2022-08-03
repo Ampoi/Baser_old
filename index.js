@@ -19,26 +19,38 @@ chatDB.loadDatabase((error)=>{
 })
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + "/src/index.html")
 });
 
 server.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
 });
 
+const noise = require("simplenoise")
+noise.seed(Math.random)
+
+function radian(degree){return degree * ( Math.PI / 180 )}
+
 io.on('connection', (socket) => {
   console.log('user connected');
   //メッセージが送られた時の処理
-  socket.on('sendMessage', (message) => {
-    console.log('Message has been sent: ', message);
-
-    const newDoc = {
-      from: "testUser",
-      content: message
+  socket.on('makeChunk', (
+    Misal,
+    chunkSize,
+    waveHeight,
+    waveWidth,
+    noiseSize
+  ) => {
+    let map = []
+    for (let y = 0; y < chunkSize; y++) {
+      let newLine = []
+      const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
+      for (let x = 0; x < chunkSize; x++) {
+        const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
+        newLine.push(newTileHeight)
+      }
+      map.push(newLine)
     }
-    chatDB.insert(newDoc)
-
-    console.log(chatDB);
-    io.emit("updateList", newDoc)
+    io.emit("drawChunk", map)
   });
 });
