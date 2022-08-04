@@ -21,9 +21,8 @@ chatDB.loadDatabase((error)=>{
   console.log("loaded database");
 })
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + "/src/index.html")
-});
+app.get('/', (req, res) => {res.sendFile(__dirname + "/src/index.html")});
+app.get('/main.js', (req, res) => {res.sendFile(__dirname + "/src/main.js")})
 
 server.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
@@ -36,7 +35,6 @@ function radian(degree){return degree * ( Math.PI / 180 )}
 
 io.on('connection', (socket) => {
   console.log('user connected');
-  socket.emit('sendImage', images);
 
   const Misal = 5 //全体のずれ幅
   const chunkSize = 60

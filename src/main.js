@@ -8,25 +8,17 @@ const tileSize = 16
 const arasa = 3
 const akarusa = 128
 
-let images = []
-socket.on("sendImage", (imgSrc)=>{
-  console.log(imgSrc);
-  /*imgSrc.forEach((img)=>{
-    images.push(imgSrc)
-  })*/
-})
-
 window.addEventListener("load", ()=>{
   socket.on("drawChunk", (newMap)=>{
     map = newMap
-    updateDisplay(map, images)
+    updateDisplay(map)
   })
 })
 
 //画面描画
 const canvas = document.getElementById("game")
 const ctx = canvas.getContext("2d")
-function updateDisplay(newMap, images){
+function updateDisplay(newMap){
   //マップの描画
   //tileX, tileYは画面上のタイルの位置
   for (let tileY = 0; tileY < canvasH; tileY++) {
@@ -51,13 +43,6 @@ function updateDisplay(newMap, images){
       ctx.fillRect(tileX*tileSize,tileY*tileSize,tileSize,tileSize)
     }
   }
-  images.forEach((image) => {
-    let newImage = new Image()
-    newImage.src = image
-    newImage.onload(()=>{
-      ctx.drawImage(newImage, 0, 0)
-    })
-  });
 }
 
 document.addEventListener("keydown", (e)=>{
