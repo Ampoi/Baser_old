@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -33,24 +36,23 @@ function radian(degree){return degree * ( Math.PI / 180 )}
 
 io.on('connection', (socket) => {
   console.log('user connected');
-  //メッセージが送られた時の処理
-  socket.on('makeChunk', (
-    Misal,
-    chunkSize,
-    waveHeight,
-    waveWidth,
-    noiseSize
-  ) => {
-    let map = []
-    for (let y = 0; y < chunkSize; y++) {
-      let newLine = []
-      const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
-      for (let x = 0; x < chunkSize; x++) {
-        const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
-        newLine.push(newTileHeight)
-      }
-      map.push(newLine)
+  socket.emit('sendImage', images);
+
+  const Misal = 5 //全体のずれ幅
+  const chunkSize = 60
+  const waveHeight = 3
+  const waveWidth = 10
+  const noiseSize = 1/10
+  let map = []
+
+  for (let y = 0; y < chunkSize; y++) {
+    let newLine = []
+    const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
+    for (let x = 0; x < chunkSize; x++) {
+      const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
+      newLine.push(newTileHeight)
     }
-    io.emit("drawChunk", map)
-  });
+    map.push(newLine)
+  }
+  io.emit("drawChunk", map)
 });

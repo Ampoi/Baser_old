@@ -1,86 +1,12 @@
 <html>
-  <body style="margin: 0px;">
-    <div style="width: 100%; height: 100vh; background-color: black;">
-      <canvas id="game" height="640" width="960px"></canvas>
-    </div>
-
+  <head>
     <script src="/socket.io/socket.io.js"></script>
-    <script>/*
-      const socket = io();
-
-      const ul = document.getElementById('messageList');
-
-      document.getElementById('sendButton').addEventListener('click', () => {
-        let inputMessage = document.getElementById('inputText').value;
-        if (inputMessage != '') {
-          socket.emit('sendMessage', inputMessage);
-          document.getElementById('inputText').value = '';
-        }
-      });
-
-      socket.on('updateList', (message) => {
-        let li = document.createElement('li');
-        li.innerText = `${message.from}: ${message.content}`
-        ul.appendChild(li);
-      });*/
-    </script><!--サーバー通信系-->
-    <script>
-      const socket = io()
-
-      //デフォルト変数
-      const Misal = 5 //全体のずれ幅
-      const chunkSize = 60
-      const waveHeight = 3
-      const waveWidth = 10
-      const noiseSize = 1/10
-
-      const canvasW = 30
-      const canvasH = 20
-      const avatarX = 15
-      const avatarY = 10
-      const tileSize = 32
-      const arasa = 3
-      const akarusa = 128
-
-      //マップ生成
-      socket.emit(
-        "makeChunk",
-        Misal,
-        chunkSize,
-        waveHeight,
-        waveWidth,
-        noiseSize
-      )
-
-      //画面描画
-      const canvas = document.getElementById("game")
-      const ctx = canvas.getContext("2d")
-      function updateDisplay(newMap){
-        //マップの描画
-        //tileX, tileYは画面上のタイルの位置
-        for (let tileY = 0; tileY < canvasH; tileY++) {
-          for (let tileX = 0; tileX < canvasW; tileX++) {
-            let tileValue = "space"
-            
-            const displayedX = tileX + avatarX - canvasW/2
-            const displayedY = tileY + avatarY - canvasH/2
-
-            if(newMap[displayedY] != undefined && newMap[displayedY][displayedX] != undefined){
-              tileValue = newMap[displayedY][displayedX]
-            }
-
-            const newColorNumber = 20*Math.round(tileValue/arasa)*arasa + 128
-            const newColor = `rgb(${newColorNumber},${newColorNumber},${newColorNumber})`
-
-            ctx.fillStyle = newColor
-            ctx.fillRect(tileX*tileSize,tileY*tileSize,tileSize,tileSize)
-          }
-        }
-      }
-
-      socket.on("drawChunk", (map)=>{
-        updateDisplay(map)
-      })
-    </script><!--ゲーム系-->
+    <script src="/main.js"></script>
+  </head>
+  <body style="margin: 0px;">
+    <div style="width: 100%; height: 100vh; background-color: black; text-align: center;">
+      <canvas id="game" height="320" width="480px"
+      style="border: solid #FFFFFF 2px; margin-top: 32px;"></canvas>
+    </div>
   </body>
 </html>
