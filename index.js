@@ -21,28 +21,40 @@ chatDB.loadDatabase((error)=>{
   console.log("loaded database");
 })
 
-app.get('/', (req, res) => {res.sendFile(__dirname + "/src/index.html")});
-app.get('/main.js', (req, res) => {res.sendFile(__dirname + "/src/main.js")})
+app.get("/", (req, res)=>{res.sendFile(__dirname + "/src/index.html")})
+app.get("/main.js", (req, res)=>{res.sendFile(__dirname + "/src/main.js")})
+
+const tiles_folder = "/src/assets/tiles/"
+const files = fs.readdirSync(__dirname + tiles_folder)
+  .filter((file) => {
+      return path.extname(file).toLowerCase() === ".png"; 
+  })
+for(const file of files){ //files.foreachと同義
+  app.get(`/${file}`, (req, res)=>{res.sendFile(__dirname + tiles_folder + file)})
+}
 
 server.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
 });
 
 const noise = require("simplenoise")
-noise.seed(Math.random)
+const mapSeed = Math.random()
+const ironSeed = Math.random()
+const aluminumSeed = Math.random()
+const oilSeed = Math.random()
 
 function radian(degree){return degree * ( Math.PI / 180 )}
 
-io.on('connection', (socket) => {
-  console.log('user connected');
-
-  const Misal = 5 //全体のずれ幅
-  const chunkSize = 60
-  const waveHeight = 3
-  const waveWidth = 10
-  const noiseSize = 1/10
+function makeMap(
+  Misal,
+  chunkSize,
+  waveHeight,
+  waveWidth,
+  noiseSize,
+  seed
+){
+  noise.seed(seed)
   let map = []
-
   for (let y = 0; y < chunkSize; y++) {
     let newLine = []
     const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
@@ -52,5 +64,56 @@ io.on('connection', (socket) => {
     }
     map.push(newLine)
   }
-  io.emit("drawChunk", map)
+  return map
+}
+
+function makeItemMap(
+  Misal,
+  chunkSize,
+  waveHeight,
+  waveWidth,
+  noiseSize,
+  seed,
+  height
+){
+  noise.seed(seed)
+  let map = []
+  for (let y = 0; y < chunkSize; y++) {
+    let newLine = []
+    const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
+    for (let x = 0; x < chunkSize; x++) {
+      const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
+      if(newTileHeight < height){
+        newLine.push("space")
+      }else{
+        newLine.push("block")
+      }
+    }
+    map.push(newLine)
+  }
+  return map
+}
+
+io.on('connection', (socket) => {
+  console.log('user connected');
+
+  const Misal = 5 //全体のずれ幅
+  const chunkSize = 60
+  const waveHeight = 3
+  const waveWidth = 10
+  const noiseSize = 1/10
+  const minHeight = 5
+
+  const map = makeMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, mapSeed)
+  const ironMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, ironSeed, minHeight)
+  const oilMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, oilSeed, minHeight)
+  const aluminumMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, aluminumSeed, minHeight)
+  console.log(map);
+
+  io.emit("drawChunk", {
+    map: map,
+    ironMap: ironMap,
+    oilMap: oilMap,
+    aluminumMap: aluminumMap
+  })
 });
