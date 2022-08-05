@@ -74,7 +74,8 @@ function makeItemMap(
   waveWidth,
   noiseSize,
   seed,
-  height
+  minHeight,
+  maxHeight
 ){
   noise.seed(seed)
   let map = []
@@ -83,7 +84,7 @@ function makeItemMap(
     const newLineStartHeight = waveHeight * Math.sin(radian(y) * waveWidth)
     for (let x = 0; x < chunkSize; x++) {
       const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
-      if(newTileHeight < height){
+      if(minHeight < newTileHeight && newTileHeight < maxHeight){
         newLine.push("space")
       }else{
         newLine.push("block")
@@ -102,13 +103,13 @@ io.on('connection', (socket) => {
   const waveHeight = 3
   const waveWidth = 10
   const noiseSize = 1/10
-  const minHeight = 5
+  const minHeight = -6.5
+  const maxHeight = 6
 
   const map = makeMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, mapSeed)
-  const ironMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, ironSeed, minHeight)
-  const oilMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, oilSeed, minHeight)
-  const aluminumMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, aluminumSeed, minHeight)
-  console.log(map);
+  const ironMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, ironSeed, minHeight, maxHeight)
+  const oilMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, oilSeed, minHeight, maxHeight)
+  const aluminumMap = makeItemMap(Misal, chunkSize, waveHeight, waveWidth, noiseSize, aluminumSeed, minHeight, maxHeight)
 
   io.emit("drawChunk", {
     map: map,
