@@ -85,9 +85,9 @@ function makeItemMap(
     for (let x = 0; x < chunkSize; x++) {
       const newTileHeight = waveHeight * Math.sin(radian(x) * waveWidth) + newLineStartHeight + noise.simplex2(x*noiseSize, y*noiseSize)*Misal
       if(minHeight < newTileHeight && newTileHeight < maxHeight){
-        newLine.push("space")
+        newLine.push("S")
       }else{
-        newLine.push("block")
+        newLine.push("B")
       }
     }
     map.push(newLine)
@@ -117,4 +117,4 @@ io.on('connection', (socket) => {
     oilMap: oilMap,
     aluminumMap: aluminumMap
   })
-});
+})

@@ -1,7 +1,7 @@
 const socket = io.connect(location.origin)
 
 const canvasW = 30
-const canvasH = 20
+const canvasH = 40
 let avatarX = 0
 let avatarY = 0
 const tileSize = 20
@@ -9,6 +9,11 @@ const arasa = 3
 const akarusa = 128
 let focusX = 0
 let focusY = 0
+let contextX = 0
+let contextY = 0
+const contextH = tileSize*16
+const contextW = tileSize*12
+let showContext = false
 
 let map = []
 let ironMap = []
@@ -32,7 +37,7 @@ function returnFocusPosition(mouse){
 function drawItemMap(newMap, type) {
   for (let tileY = 0; tileY < canvasH; tileY++) {
     for (let tileX = 0; tileX < canvasW; tileX++) {
-      let tileValue = "space"
+      let tileValue = "S"
       
       const displayedX = tileX + avatarX - canvasW/2
       const displayedY = tileY + avatarY - canvasH/2
@@ -41,7 +46,7 @@ function drawItemMap(newMap, type) {
         tileValue = newMap[displayedY][displayedX]
       }
 
-      if(tileValue == "space"){
+      if(tileValue == "S"){
         ctx.fillStyle = "rgba(0, 0, 0, 0)"
         ctx.fillRect(tileX*tileSize,tileY*tileSize,tileSize,tileSize)
       }else{
@@ -53,7 +58,7 @@ function drawItemMap(newMap, type) {
   }
 }
 
-function updateDisplay(newMap, ironMap, oilMap, aluminumMap){
+function updateDisplay(){
   //マップの描画
   //tileX, tileYは画面上のタイルの位置
   for (let tileY = 0; tileY < canvasH; tileY++) {
@@ -63,8 +68,8 @@ function updateDisplay(newMap, ironMap, oilMap, aluminumMap){
       const displayedX = tileX + avatarX - canvasW/2
       const displayedY = tileY + avatarY - canvasH/2
 
-      if(newMap[displayedY] != undefined && newMap[displayedY][displayedX] != undefined){
-        tileValue = newMap[displayedY][displayedX]
+      if(map[displayedY] != undefined && map[displayedY][displayedX] != undefined){
+        tileValue = map[displayedY][displayedX]
       }
 
       if(tileValue == "space"){
@@ -78,10 +83,12 @@ function updateDisplay(newMap, ironMap, oilMap, aluminumMap){
       ctx.fillRect(tileX*tileSize,tileY*tileSize,tileSize,tileSize)
     }
   }
-
+  
+  ctx.globalAlpha = 0.5
   drawItemMap(ironMap, "iron")
   drawItemMap(oilMap, "oil")
   drawItemMap(aluminumMap, "aluminum")
+  ctx.globalAlpha = 1
 
   //フォーカスの表示
   let focusImg = new Image()
@@ -89,6 +96,12 @@ function updateDisplay(newMap, ironMap, oilMap, aluminumMap){
   focusImg.onload = ()=>{
     console.log("apapa");
     ctx.drawImage(focusImg, focusX*tileSize, focusY*tileSize, tileSize, tileSize)
+  }
+
+  //コンテキストメニューの表示
+  if(showContext == true){
+    ctx.fillStyle = "#000000"
+    ctx.fillRect(contextX ,contextY,contextW,contextH)
   }
 }
 
@@ -98,7 +111,7 @@ socket.on("drawChunk", (newMap)=>{
   oilMap = newMap.oilMap
   aluminumMap = newMap.aluminumMap
 
-  updateDisplay(map, ironMap, oilMap, aluminumMap)
+  updateDisplay()
 })
 
 document.addEventListener("keydown", (e)=>{
@@ -117,16 +130,30 @@ document.addEventListener("keydown", (e)=>{
     default:
       break;
   }
-  updateDisplay(map, ironMap, oilMap, aluminumMap)
+  updateDisplay()
 })
 
 canvas.addEventListener("mousemove", (e)=>{
-  const mousePosition = returnFocusPosition(e)
-  newFocusX = Math.floor(mousePosition.x / tileSize)
-  newFocusY = Math.floor(mousePosition.y / tileSize)
-  if(newFocusX != focusX || newFocusY != focusY){
-    focusX = newFocusX
-    focusY = newFocusY
-    updateDisplay(map, ironMap, oilMap, aluminumMap)
+  if(showContext == false){
+    const mousePosition = returnFocusPosition(e)
+    newFocusX = Math.floor(mousePosition.x / tileSize)
+    newFocusY = Math.floor(mousePosition.y / tileSize)
+    if(newFocusX != focusX || newFocusY != focusY){
+      focusX = newFocusX
+      focusY = newFocusY
+      updateDisplay()
+    }
   }
+})
+
+document.addEventListener("contextmenu", (e)=>{
+  const mousePosition = returnFocusPosition(e)
+  contextX = mousePosition.x
+  contextY = mousePosition.y
+  showContext = !showContext
+  console.log(mousePosition);
+
+  updateDisplay()
+
+  event.preventDefault();
 })
