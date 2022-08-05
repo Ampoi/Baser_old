@@ -11,8 +11,8 @@ let focusX = 0
 let focusY = 0
 let contextX = 0
 let contextY = 0
-const contextH = tileSize*16
-const contextW = tileSize*12
+const contextH = 11
+const contextW = 12
 let showContext = false
 
 let map = []
@@ -101,9 +101,20 @@ function updateDisplay(){
   //コンテキストメニューの表示
   if(showContext == true){
     ctx.fillStyle = "#000000"
-    ctx.fillRect(contextX ,contextY,contextW,contextH)
+    ctx.lineWidth = 2
+    ctx.strokeStyle = "#F0F0F0"
+    //ウィンドウ
+    ctx.fillRect(contextX, contextY, contextW*tileSize, contextH*tileSize)
+    ctx.strokeRect(contextX, contextY, contextW*tileSize, contextH*tileSize)
+    //右のやつ
+    ctx.fillRect(contextX, contextY, (contextW - 1)*tileSize, (contextH - 1)*tileSize)
+    ctx.strokeRect(contextX + tileSize/2, contextY + tileSize/2, 2*tileSize, (contextH - 1)*tileSize)
   }
 }
+
+document.addEventListener("scroll", ()=>{
+  event.preventDefault();
+})
 
 socket.on("drawChunk", (newMap)=>{
   map = newMap.map
