@@ -2,18 +2,30 @@ const socket = io.connect(location.origin)
 
 const canvasW = 30
 const canvasH = 40
-let avatarX = 0
-let avatarY = 0
+let userX = 0
+let userY = 0
 const tileSize = 20
+const itemImageSize = 25
 const arasa = 3
 const akarusa = 128
-let focusX = 0
-let focusY = 0
+
+let focusDisplayX = 0
+let focusDisplayY = 0
+let focusMapX = 0
+let focusMapY = 0
+
 let contextX = 0
 let contextY = 0
 const contextH = 11
 const contextW = 12
 let showContext = false
+let inventory = [
+  {value: "iron", amount: 10},
+  {value: "iron", amount: 10},
+  {value: "", amount: 0},
+  {value: "", amount: 0},
+  {value: "", amount: 0}
+]
 
 let map = []
 let ironMap = []
@@ -39,8 +51,8 @@ function drawItemMap(newMap, type) {
     for (let tileX = 0; tileX < canvasW; tileX++) {
       let tileValue = "S"
       
-      const displayedX = tileX + avatarX - canvasW/2
-      const displayedY = tileY + avatarY - canvasH/2
+      const displayedX = tileX + userX - canvasW/2
+      const displayedY = tileY + userY - canvasH/2
 
       if(newMap[displayedY] != undefined && newMap[displayedY][displayedX] != undefined){
         tileValue = newMap[displayedY][displayedX]
@@ -65,8 +77,8 @@ function updateDisplay(){
     for (let tileX = 0; tileX < canvasW; tileX++) {
       let tileValue = "space"
       
-      const displayedX = tileX + avatarX - canvasW/2
-      const displayedY = tileY + avatarY - canvasH/2
+      const displayedX = tileX + userX - canvasW/2
+      const displayedY = tileY + userY - canvasH/2
 
       if(map[displayedY] != undefined && map[displayedY][displayedX] != undefined){
         tileValue = map[displayedY][displayedX]
@@ -94,8 +106,7 @@ function updateDisplay(){
   let focusImg = new Image()
   focusImg.src = "/focus.png"
   focusImg.onload = ()=>{
-    console.log("apapa");
-    ctx.drawImage(focusImg, focusX*tileSize, focusY*tileSize, tileSize, tileSize)
+    ctx.drawImage(focusImg, focusDisplayX*tileSize, focusDisplayY*tileSize, tileSize, tileSize)
   }
 
   //コンテキストメニューの表示
@@ -104,11 +115,30 @@ function updateDisplay(){
     ctx.lineWidth = 2
     ctx.strokeStyle = "#F0F0F0"
     //ウィンドウ
+    ctx.globalAlpha = 0.7
     ctx.fillRect(contextX, contextY, contextW*tileSize, contextH*tileSize)
+    ctx.globalAlpha = 1
     ctx.strokeRect(contextX, contextY, contextW*tileSize, contextH*tileSize)
     //右のやつ
-    ctx.fillRect(contextX, contextY, (contextW - 1)*tileSize, (contextH - 1)*tileSize)
-    ctx.strokeRect(contextX + tileSize/2, contextY + tileSize/2, 2*tileSize, (contextH - 1)*tileSize)
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeRect(contextX + tileSize/2, contextY + tileSize/2 + tileSize*2*i, 2*tileSize, 2*tileSize)
+    }
+    let count = 0
+    inventory.forEach((item) => {
+      if(item.value == ""){return}
+      const padding = (tileSize*2 - itemImageSize) / 2
+      const newItem = new Image()
+      newItem.src = `/${item.value}.png`
+      ctx.drawImage(
+        newItem,
+        contextX + tileSize/2 + padding,
+        contextY + tileSize/2 + padding + tileSize*2*count,
+        itemImageSize,
+        itemImageSize
+      )
+
+      count += 1
+    })
   }
 }
 
@@ -128,16 +158,21 @@ socket.on("drawChunk", (newMap)=>{
 document.addEventListener("keydown", (e)=>{
   switch (e.key) {
     case "w":
-      avatarY -= 1
+      userY -= 1
       break;
     case "d":
-      avatarX += 1
+      userX += 1
       break;
     case "s":
-      avatarY += 1
+      userY += 1
       break;
     case "a":
-      avatarX -= 1
+      userX -= 1
+      break;
+
+    case "q":
+      
+      break;
     default:
       break;
   }
@@ -149,9 +184,11 @@ canvas.addEventListener("mousemove", (e)=>{
     const mousePosition = returnFocusPosition(e)
     newFocusX = Math.floor(mousePosition.x / tileSize)
     newFocusY = Math.floor(mousePosition.y / tileSize)
-    if(newFocusX != focusX || newFocusY != focusY){
-      focusX = newFocusX
-      focusY = newFocusY
+    if(newFocusX != focusDisplayX || newFocusY != focusDisplayY){
+      focusDisplayX = newFocusX
+      focusDisplayY = newFocusY
+      focusMapX = focusDisplayX - (canvasW/2 - userX)
+      focusMapY = focusDisplayY - (canvasH/2 - userY)
       updateDisplay()
     }
   }
@@ -162,7 +199,6 @@ document.addEventListener("contextmenu", (e)=>{
   contextX = mousePosition.x
   contextY = mousePosition.y
   showContext = !showContext
-  console.log(mousePosition);
 
   updateDisplay()
 
